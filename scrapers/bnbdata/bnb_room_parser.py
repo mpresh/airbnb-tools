@@ -7,6 +7,11 @@ from bs4 import BeautifulSoup
 from pprint import pprint
 import re
 
+def get_pricing(property_id):
+    pricing = {}
+    "https://www.airbnb.com/rooms/4914702?check_in=2016-11-07&guests=1&adults=1&check_out=2016-11-16"
+    return pricing
+
 def parse_room_page(text):
     data = {}
     soup = BeautifulSoup(text, 'html.parser')
