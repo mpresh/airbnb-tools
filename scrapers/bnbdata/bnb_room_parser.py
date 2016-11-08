@@ -43,18 +43,54 @@ def parse_room_page(text):
     data["bedrooms"] = summary_details[2].text
     data["beds"] = summary_details[3].text
 
+
+    
     details_section = soup.find(class_="details-section")
-    details_div = details_section.find("div")
-    divs = details_div.find_all("div")
+    details_div = list(details_section.children)[0]
+    details_div = list(details_div.children)[0]
+    details_div = list(details_div.children)[0]
+    details_div = list(details_div.children)[0]
+    details_children = list(details_div.children)
+
+
+    for index, detail in enumerate(details_children):
+        detail_text = detail.text.lower()
+        
+        if "bbout this listing" in detail_text:
+            data["detail"] = details_children[index + 1]
+
+        if "business travel" in detail_text:
+            data["business"] = detail_text
+
+        if "the space" in detail_text:
+            data["space"] = detail_text
+
+        if "amenities" in detail_text:
+            data["amenities"] = detail_text
+
+        if "prices" in detail_text:
+            data["prices"] = detail_text
+
+        if "description" in detail_text:
+            data["description"] = detail_text
+
+        if "house rules" in detail_text:
+            data["house_rules"] = detail_text
+
+        if "safety features" in detail_text:
+            data["safety_features"] = detail_text
+
+        if "availability" in detail_text:
+            data["availability"] = detail_text
+            
+    #data["details"] = details_children
 
     
 
-    #print(len(divs), divs[0])
-    for index, div in enumerate(divs):
-        print(index, div.text)
+    
 
-    data["description"] = divs[3].text
-    data["business_travel"] = divs[8].text
+
+
     return data
 
     
