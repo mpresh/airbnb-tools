@@ -11,7 +11,6 @@ class Scraper:
         for result in self.scrape():
             if display:
                 print(result)
-            print(result)
             self.results.update(result)
 
     def parse(self, text):
@@ -26,7 +25,7 @@ class Scraper:
         return item
 
     def make_request(self, request_item):
-        result = requests.get(request_url)
+        result = requests.get(request_item)
         return result.text
         
     def scrape(self):
