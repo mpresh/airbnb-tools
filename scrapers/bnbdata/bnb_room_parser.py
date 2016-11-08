@@ -11,6 +11,24 @@ def parse_room_page(text):
     data = {}
     soup = BeautifulSoup(text, 'html.parser')
 
+    meta_list =  list(soup.find_all("meta"))
+    for meta in meta_list:
+        try:
+            if "latitude" in meta.get("property"):
+                data["latitude"] = meta.get("content")
+            if "longitude" in meta.get("property"):
+                data["longitude"] = meta.get("content")
+            if "airbedandbreakfast:rating" in meta.get("property"):
+                data["rating"] = meta.get("content")
+
+        except:
+            pass
+            
+    price = soup.find(class_="book-it").text.lower()
+    start = price.find("per night")
+    price = price[:start].replace("\n", "")
+    data["price"] = price
+    
     summary_dls = list(soup.find(class_="summary-component__dls").find("div").children)
     location = list(summary_dls[2].children)[0]
     reviews = list(summary_dls[2].children)[1]
