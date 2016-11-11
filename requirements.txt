@@ -1,3 +1,4 @@
 requests
 Scrapy
 beautifulsoup4
+retrying
