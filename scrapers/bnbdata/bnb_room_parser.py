@@ -2,6 +2,7 @@
 Parser to parse out an individual room page
 """
 
+import sys
 import urlparse
 from urllib import urlencode
 import requests
@@ -59,14 +60,22 @@ def get_calendar_info(url):
     session = dryscrape.Session()
     session.visit(url)
     text = session.body()
-    #text = requests.get(url).text
-    soup = BeautifulSoup(text, 'html.parser')
-    c = soup.find(class_="book-it-panel").text
-    print(c)
+    
     if "those dates are not available" in text.lower():
         return False
-    print("KLALALLA")
-    return True
+    
+    soup = BeautifulSoup(text, 'html.parser')
+    price = soup.find(class_="book-it__price")
+    subtotal_trs = soup.find_all(class_="book-it-panel")
+    #.find("table").find_all("tr")
+    print("FORM", len(subtotal_trs), text.find("Accommodation"))
+    with open("/tmp/accom.txt", "w") as f:
+        f.write(text.encode('utf-8'))
+        
+    sys.exit()
+    data = {}
+    data["price"] = pull_out_first_integer(price.text)
+    return data
     
 
 def split_calendar_dates(start, end):
