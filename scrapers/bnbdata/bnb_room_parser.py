@@ -2,6 +2,8 @@
 Parser to parse out an individual room page
 """
 
+import urlparse
+from urllib import urlencode
 import requests
 from bs4 import BeautifulSoup
 from pprint import pprint
@@ -9,10 +11,34 @@ import re
 from retrying import retry
 from datetime import datetime, timedelta
 import traceback
+import dryscrape
 
 AIRBNB_LISTING_URL = "https://www.airbnb.com/rooms/{}"
 
 
+def build_pricing_url(property_id, start, end, guests):
+    start = from_datetime_torequest_date_format(start)
+    end = from_datetime_torequest_date_format(end)
+    
+    params = {}
+    params["locale"] = "en"
+    params["currency"] = "USD"
+    params["key"] = "d306zoyjsyarp7ifhu67rjxn52tv0t20"
+    params["_p3_impression_id"] = "p3_1478914996_rpkXwODnQeHvhYUk"
+    params["check_in"] = start
+    params["check_out"] = end
+    params["_parent_request_uuid"] = "795e2598-7da1-41d7-b5ff-dd00b1992ae9"
+    params["_intents"] = "p3_book_it"
+    params["_interaction_type"] = "pageload"
+    params["guests"] = guests
+    params["listing_id"] = property_id
+    params["_format"] = "for_detailed_booking_info_on_web_p3_with_message_data"
+
+    
+    url = "https://www.airbnb.com/api/v2/pricing_quotes?{}".format(urlencode(params))
+
+    return url
+    
 def from_datetime_torequest_date_format(dt):
     return "{}-{}-{}".format(dt.year, dt.month, dt.day)
 
@@ -30,10 +56,17 @@ def build_calendar_url(property_id, start, end, guests):
 
 def get_calendar_info(url):
     print("URL", url)
-    text = requests.get(url).text
+    session = dryscrape.Session()
+    session.visit(url)
+    text = session.body()
+    #text = requests.get(url).text
     soup = BeautifulSoup(text, 'html.parser')
+    c = soup.find(class_="book-it-panel").text
+    print(c)
     if "those dates are not available" in text.lower():
         return False
+    print("KLALALLA")
+    return True
     
 
 def split_calendar_dates(start, end):
@@ -196,13 +229,16 @@ def parse_room_page(text):
 
     
 def main():
+    property_id = "4914702"
+    guests = 4
     #data = get_listing_info("4914702")
     #pprint(data)
     print(get_calendar())
     #now = datetime.now()
     #start = datetime(year=now.year, month=now.month, day=now.day)
     #end = datetime(year=int(start.year) + 1, month=start.month, day=start.day)
-    #print(split_calendar_dates(start, end))
+    #url = build_pricing_url(property_id, start, end, guests)
+    #print(url)
     
 if __name__ == "__main__":
     main()
