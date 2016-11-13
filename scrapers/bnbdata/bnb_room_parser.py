@@ -20,8 +20,8 @@ AIRBNB_LISTING_URL = "https://www.airbnb.com/rooms/{}"
 
 
 def build_calendar_url(property_id, start, end, guests, key="d306zoyjsyarp7ifhu67rjxn52tv0t20"):
-    start = from_datetime_torequest_date_format(start)
-    end = from_datetime_torequest_date_format(end)
+    start = from_datetime_to_string(start)
+    end = from_datetime_to_string(end)
     
     params = {}
     params["locale"] = "en"
@@ -42,8 +42,8 @@ def build_calendar_url(property_id, start, end, guests, key="d306zoyjsyarp7ifhu6
 
     return url
     
-def from_datetime_torequest_date_format(dt):
-    return "{}-{}-{}".format(dt.year, dt.month, dt.day)
+def from_datetime_to_string(dt):
+    return "{}-{}-{}".format(dt.year, str(dt.month).zfill(2), str(dt.day).zfill(2))
 
 
 def get_json_from_script(soup, attrs):
@@ -109,30 +109,54 @@ def split_calendar_dates(start, end):
     return (first_dates, second_dates)
 
 
-def get_calendar_dates(property_id, start, end, guests, minimum, key):
+def make_start_to_end_date_string(start, end):
+    return "{}-{}".format(from_datetime_to_string(start),
+                          from_datetime_to_string(end))
+
+
+def days_difference(start, end):
+    td = end - start
+    return td.days
+
+
+def fill_calendar_dates_with_availability_data(start, end, data):
+    calendar = {}
+    current_day = datetime(year=start.year, month=start.month, day=start.day)
+    while current_day <= end:
+        calendar[from_datetime_to_string(current_day)] = data["available"]
+        current_day = current_day + timedelta(days=1)
+
+    return calendar
+
+def get_calendar_dates(property_id, start, end, guests, minimum=2, key="d306zoyjsyarp7ifhu67rjxn52tv0t20"):
     url = build_calendar_url(property_id, start, end, guests, key=key)
     print("URL", url)
     result = get_calendar_info(url)
-    print("result", result, result.keys())
     calendar = {}
     if result["available"] is False:
-        first_half, second_half = split_calendar_dates(start, end)
-        result_first = get_calendar_dates(property_id, first_half[0], first_half[1], guests, minimum)
-        result_second = get_calendar_dates(property_id, second_half[0], second_half[1], guests, minimum)
-        calendar.update(result_first)
-        calendar.update(result_second)
+        if days_difference(start, end) > minimum:
+            first_half, second_half = split_calendar_dates(start, end)
+            result_first = get_calendar_dates(property_id, first_half[0], first_half[1], guests, minimum, key)
+            result_second = get_calendar_dates(property_id, second_half[0], second_half[1], guests, minimum, key)
+
+            calendar.update(result_first)
+            calendar.update(result_second)
+            #calendar.update(fill_calendar_dates_with_availability_data(first_half[0], first_half[1], result_first))
+            #calendar.update(fill_calendar_dates_with_availability_data(second_half[0], second_half[1], result_second))
+        else:
+            calendar.update(fill_calendar_dates_with_availability_data(start, end, result))
     else:
-        print(result)
-        calendar = result
+        calendar.update(fill_calendar_dates_with_availability_data(start, end, result))
     return calendar
 
 
 def get_calendar(property_id="4914702", minimum=2, key="d306zoyjsyarp7ifhu67rjxn52tv0t20"):
     now = datetime.now()
     start = datetime(year=now.year, month=now.month, day=now.day)
-    end = datetime(year=int(start.year) + 1, month=start.month, day=start.day)
+    end = start + timedelta(days=366)
+    #end = datetime(year=int(start.year) + 1, month=start.month, day=start.day)
     guests = "4"
-    return get_calendar_dates(property_id, start, end, guests, minimum, key)
+    return get_calendar_dates(property_id, start, end, guests, minimum=minimum, key=key)
 
 
 @retry(wait_fixed=1000)
@@ -288,15 +312,20 @@ def parse_room_page(text):
 def main():
     property_id = "4914702"
     guests = 4
-    data = get_listing_info(property_id)
+    #data = get_listing_info(property_id)
     #pprint(data)
     #print(get_calendar())
-    #now = datetime.now()
-    #start = datetime(year=now.year, month=now.month, day=now.day)
+    now = datetime.now()
+    start = datetime(year=now.year, month=now.month, day=now.day)
     #end = datetime(year=int(start.year) + 1, month=start.month, day=start.day)
     #url = build_calendar_url(property_id, start, end, guests)
     #data = get_calendar_info(url)
     #pprint(data)
+
+    end = start + timedelta(days=365)
+    r = get_calendar_dates(property_id, start, end, guests, minimum=2, key="d306zoyjsyarp7ifhu67rjxn52tv0t20")
+    pprint(r)
+    print(type(r), r.keys())
     
 if __name__ == "__main__":
     main()
