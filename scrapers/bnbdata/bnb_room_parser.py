@@ -111,7 +111,9 @@ def split_calendar_dates(start, end):
 
 def get_calendar_dates(property_id, start, end, guests, minimum, key):
     url = build_calendar_url(property_id, start, end, guests, key=key)
+    print("URL", url)
     result = get_calendar_info(url)
+    print("result", result, result.keys())
     calendar = {}
     if result["available"] is False:
         first_half, second_half = split_calendar_dates(start, end)
@@ -121,7 +123,7 @@ def get_calendar_dates(property_id, start, end, guests, minimum, key):
         calendar.update(result_second)
     else:
         print(result)
-        calendar = {}
+        calendar = result
     return calendar
 
 
@@ -141,9 +143,10 @@ def get_listing_info(listing_number):
         data = parse_room_page(text)
     except Exception as e:
         print(e)
+    print("OOO", data["key"], data["min_nights"])
     data["listing_number"] = listing_number
     calendar = get_calendar(property_id=listing_number,
-                            minimum=data["availability"],
+                            minimum=data["min_nights"],
                             key=data["key"])
     data["calendar"] = calendar
     return data
@@ -169,10 +172,19 @@ def parse_room_page(text):
     soup = BeautifulSoup(text, 'html.parser')
     with open("/tmp/original.txt", "w+") as f:
         f.write(text.encode("utf-8"))
-
-    data["key"] = get_key_information(soup)
         
     try:
+
+        data["key"] = get_key_information(soup)
+        json_data = get_json_from_script(soup,
+                                         attrs={"data-hypernova-key":
+                                                "p3hero_and_slideshowbundlejs"})
+        json_data = json_data["slideshowProps"]["listing"]
+        #pprint(json_data)
+        #print(type(json_data))
+        #print(json_data.keys())
+        data.update(json_data)
+        
         
         meta_list =  list(soup.find_all("meta"))
         for meta in meta_list:
@@ -183,7 +195,6 @@ def parse_room_page(text):
                     data["longitude"] = meta.get("content")
                 if "airbedandbreakfast:rating" in meta.get("property"):
                     data["rating"] = meta.get("content")
-        
             except:
                 pass
                 
@@ -195,22 +206,22 @@ def parse_room_page(text):
             price = mo.group(1)
         data["price"] = price
         
-        summary_dls = list(soup.find(class_="summary-component__dls").find("div").children)
-        location = list(summary_dls[2].children)[0]
-        reviews = list(summary_dls[2].children)[1]
+        #summary_dls = list(soup.find(class_="summary-component__dls").find("div").children)
+        #location = list(summary_dls[2].children)[0]
+        #reviews = list(summary_dls[2].children)[1]
+        #data["location"] = location.text
+        #reviews = reviews.text
+        #mo = re.search("(\d*) reviews", reviews)
+        #if mo:
+        #    reviews = mo.group(1)
+        #else:
+        #    reviews = None
+        #
+        #data["reviews"] = reviews
+
         
-        data["location"] = location.text
-        reviews = reviews.text
-        mo = re.search("(\d*) reviews", reviews)
-        if mo:
-            reviews = mo.group(1)
-        else:
-            reviews = None
-        
-        data["reviews"] = reviews
-        
-        profile_link = soup.find(class_="host-profile-position-sm").find("img").get("src")
-        data["profile_img"] = profile_link
+        #profile_link = soup.find(class_="host-profile-position-sm").find("img").get("src")
+        #data["profile_img"] = profile_link
         
         data["superhost"] = bool(soup.find(class_="superhost"))
         
@@ -239,7 +250,7 @@ def parse_room_page(text):
         for index, detail in enumerate(details_children):
             detail_text = detail.text.lower()
             
-            if "bbout this listing" in detail_text:
+            if "about this listing" in detail_text:
                 data["detail"] = details_children[index + 1]
         
             if "business travel" in detail_text:
@@ -266,9 +277,9 @@ def parse_room_page(text):
             if "availability" in detail_text:
                 data["availability"] = pull_out_first_integer(str(detail_text))
                 
-        #data["details"] = details_children
     except Exception as e:
         print(e)
+        traceback.print_exc(file=sys.stdout)
         raise e
 
     return data
@@ -277,13 +288,13 @@ def parse_room_page(text):
 def main():
     property_id = "4914702"
     guests = 4
-    data = get_listing_info("4914702")
+    data = get_listing_info(property_id)
     #pprint(data)
     #print(get_calendar())
-    now = datetime.now()
-    start = datetime(year=now.year, month=now.month, day=now.day)
-    end = datetime(year=int(start.year) + 1, month=start.month, day=start.day)
-    url = build_calendar_url(property_id, start, end, guests)
+    #now = datetime.now()
+    #start = datetime(year=now.year, month=now.month, day=now.day)
+    #end = datetime(year=int(start.year) + 1, month=start.month, day=start.day)
+    #url = build_calendar_url(property_id, start, end, guests)
     #data = get_calendar_info(url)
     #pprint(data)
     
