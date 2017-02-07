@@ -123,10 +123,12 @@ def fill_calendar_dates_with_availability_data(start, end, data):
     calendar = {}
     current_day = datetime(year=start.year, month=start.month, day=start.day)
     while current_day <= end:
-        calendar[from_datetime_to_string(current_day)] = data["available"]
+        calendar[from_datetime_to_string(current_day)] = {"available": data["available"],
+                                                          "price": data["average_rate_without_tax_usd"]}
         current_day = current_day + timedelta(days=1)
 
     return calendar
+
 
 def get_calendar_dates(property_id, start, end, guests, minimum=2, key="d306zoyjsyarp7ifhu67rjxn52tv0t20"):
     url = build_calendar_url(property_id, start, end, guests, key=key)

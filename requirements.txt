@@ -5,3 +5,4 @@ retrying
 dryscrape
 MySQL-python
 sqlalchemy
+pynamodb
