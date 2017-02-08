@@ -1,0 +1,23 @@
+
+
+Run Scraper:
+python scrapers/bnbdata/bnb_room_parser.py
+
+
+Todo:
+Put data into dynamodb.
+
+
+Data Model:
+
+
+Property:
+        
+        Number Ratings: int
+        Average Rating: float
+        Location: zipcode, latitude, longitude
+	Bedrooms: int
+	Bathrooms: int
+	Square Feet: int
+	Details: Json
+	Calendar All Time: Json
