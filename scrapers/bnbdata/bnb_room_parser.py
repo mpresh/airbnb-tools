@@ -132,7 +132,7 @@ def fill_calendar_dates_with_availability_data(start, end, data):
 
 def get_calendar_dates(property_id, start, end, guests, minimum=2, key="d306zoyjsyarp7ifhu67rjxn52tv0t20"):
     url = build_calendar_url(property_id, start, end, guests, key=key)
-    print("URL", url)
+    #print("URL", url)
     result = get_calendar_info(url)
     calendar = {}
     if result["available"] is False:
@@ -310,9 +310,18 @@ def parse_room_page(text):
 
     return data
 
+
+def calculate_total_income(calendar):
+    total = 0
+    for day, details in calendar.items():
+        if details["available"] is False:
+            total += details["price"]
+    return total * .8
+
     
 def main():
     property_id = "4914702"
+    property_id = "16042826"
     guests = 4
     #data = get_listing_info(property_id)
     #pprint(data)
@@ -326,8 +335,7 @@ def main():
 
     end = start + timedelta(days=365)
     r = get_calendar_dates(property_id, start, end, guests, minimum=2, key="d306zoyjsyarp7ifhu67rjxn52tv0t20")
-    pprint(r)
-    print(type(r), r.keys())
+    print(calculate_total_income(r))
     
 if __name__ == "__main__":
     main()
