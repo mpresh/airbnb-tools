@@ -1,4 +1,4 @@
-import config
+from airbnb import config
 from datetime import datetime, timedelta
 import dryscrape
 from urllib import urlencode
