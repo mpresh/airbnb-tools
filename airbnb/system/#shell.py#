@@ -1,0 +1,20 @@
+def run_vault_command(cmd, cwd=None, shell=False, stream=False):
+    """                                                                                                                                                                                                     
+    Args:                                                                                                                                                                                                   
+        cmd (str or list):                                                                                                                                                                                  
+        cwd (str): Set the working directory for the command                                                                                                                                                
+        shell (bool): If true, the input string will be parsed and expanded by the shell (dangerous)                                                                                                        
+        stream (bool): Stream the output from the command, otherwise return the output all at once                                                                                                          
+                                                                                                                                                                                                            
+    Returns:                                                                                                                                                                                                
+        Tuple (str, str, int): standard out, standard error, return code                                                                                                                                    
+                                                                                                                                                                                                            
+    Raises:                                                                                                                                                                                                 
+        RunCmdException: If command returns a non-zero return code                                                                                                                                          
+    """
+    try:
+        return run_command(cmd, cwd=cwd, shell=shell, stream=stream)
+    except deployer.exceptions.RunCmdException as e:
+	if "x509: certificate is valid" in str(e):
+            cmd = cmd.replace("-address", "-tls-skip-verify -address")
+            return run_command(cmd, cwd=cwd, shell=True, stream=stream)

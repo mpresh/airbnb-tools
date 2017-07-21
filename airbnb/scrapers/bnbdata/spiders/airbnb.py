@@ -7,7 +7,8 @@ import json
 from scrapy.crawler import CrawlerProcess
 
 settings.overrides['DEPTH_LIMIT'] = 0
-START_URLS = ["https://www.airbnb.com/s/Cape-Cod--Barnstable-County--MA--United-States"]
+#START_URLS = []
+#START_URLS = ["https://www.airbnb.com/s/Cape-Cod--Barnstable-County--MA--United-States"]
 
 class Item(scrapy.Item):
     rev_count = scrapy.Field()
@@ -31,17 +32,29 @@ class Item(scrapy.Item):
 # class BnbspiderSpider(scrapy.Spider):
 class BnbSpider(scrapy.Spider):
     name = "bnbspider"
-    # allowed_domains = ["airbnb.com"]
-    start_urls = START_URLS
-    results = []
-    
+    allowed_domains = ["airbnb.com"]
+    start_urls = []
+    #start_urls = ["https://www.airbnb.com/s/Cape-Cod--Barnstable-County--MA--United-States"]
+    #results = []
+    #adults = 16
+
+    def __init__(self, start_url='', adults=None):
+        self.start_urls = [start_url]
+        self.adults = adults
+        print("ADULTS", self.adults)
+        
     def parse(self, response):
         last_page_number = 17
         if last_page_number < 1:
             return
         else:
-            page_urls = [response.url + "?section_offset=" + str(pageNumber)
-                     for pageNumber in range(last_page_number)]
+            if self.adults:
+                offset_str = "?adults={}&section_offset=".format(self.adults)
+            else:
+                offset_str = "?section_offset="
+
+            page_urls = [response.url + offset_str + str(pageNumber)
+                         for pageNumber in range(last_page_number)]
             for page_url in page_urls:
                 yield scrapy.Request(page_url,
                                     callback=self.parse_listing_results_page)
@@ -52,10 +65,11 @@ class BnbSpider(scrapy.Spider):
         room_url_parts = set(response.xpath('//div/a[contains(@href,"rooms")]/@href').extract())
         for href in list(room_url_parts):
             url = response.urljoin(href)
-            BnbSpider.results.append(url)
-            yield scrapy.Request(url, callback=self.parse_listing_contents)
-
-
+            #BnbSpider.results.append(url)
+            #yield scrapy.Request(url, callback=self.parse_listing_contents)
+            #yield scrapy.Request(url)
+            yield {"url" : url}
+            
     def parse_listing_contents(self, response):
         item = Item()
 
@@ -105,15 +119,21 @@ class BnbSpider(scrapy.Spider):
                 return 1
 
 
-def run_scraper(start_urls):
+def run_scraper(start_urls, adults=None):
     global START_URLS
-    if isinstance(start_urls, basestring):
-        start_urls = [start_urls]
-    START_URLS = start_urls
+    
+    if adults:
+        start_urls[0] = start_urls[0] + "?adults={}".format(adults)
+
+    print(start_urls)
+
+    BnbSpider.start_urls = start_urls
     BnbSpider.results = []
+    BnbSpider.adults = adults
     process = CrawlerProcess({
        'USER_AGENT': 'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1)'
     })
+    
     process.crawl(BnbSpider)
     process.start()
     return BnbSpider.results
@@ -121,7 +141,9 @@ def run_scraper(start_urls):
 
 
 if __name__ == "__main__":
-    results = run_scraper("02635")
+    results = run_scraper(["https://www.airbnb.com/s/02635--MA--United-States"], adults=14)
+    #results = run_scraper(["https://www.airbnb.com/s/02635--MA--United-States"], adults=14)
+    #results = run_scraper("02635", adults=16)
     print(results)
 
 

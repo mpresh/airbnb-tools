@@ -1,0 +1,58 @@
+Barnstable - 02630 
+Bass River - 02664 
+Bourne - 02532 
+Brewster - 02631 
+Buzzards Bay - 02532
+Cataumet - 02534 
+Centerville - 02632 
+Chatham - 02633 
+Cotuit - 02635 
+Craigville - 02636 
+Cummaquid - 02637 
+Dennis - 02638 
+Dennis Port - 02639
+East Dennis - 02641 
+East Falmouth - 02536 
+East Orleans - 02643 
+East Sandwich - 02537
+Eastham - 02642 
+Falmouth - 02540 
+Harwich - 02645 
+Harwich Port - 02646
+Hyannis - 02601 
+Hyannis Port - 02647 
+Mashpee - 02649 
+Nantucket - 02554 
+New Seabury - 02649 
+North Chatham - 02650
+North Eastham - 02651
+North Falmouth - 02556 
+North Truro - 02652
+Orleans - 02653 
+Pocasset - 02559 
+Provincetown - 02657 
+Sagamore - 02561 
+Sagamore Beach - 02562 
+Sandwich - 02563 
+Siasconset - 02564 
+South Chatham - 02659
+South Dennis - 02660 
+South Harwich - 02661 
+South Orleans - 02662 
+South Wellfleet - 02663 
+South Yarmouth - 02664
+Teaticket - 02536 
+Truro - 02666
+Waquoit - 02536 
+Wellfleet - 02667 
+West Barnstable - 02668 
+West Chatham - 02669 
+West Chop - 02573 
+West Dennis - 02670
+West Falmouth - 02574
+West Harwich - 02671 
+West Hyannisport - 02672
+West Tisbury - 02575 
+West Yarmouth - 02637 
+Woods Hole - 02543 
+Yarmouthport - 02675
