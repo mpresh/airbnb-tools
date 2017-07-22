@@ -28,7 +28,7 @@ def run_spider(path_to_spider, **kwargs):
     run_command(cmd, shell=True)
     f.seek(0)
     out = f.read()
-    os.unlink(f.name)
+    #os.unlink(f.name)
     return [url["url"] for url in json.loads(out)]
     
 if __name__ == "__main__":

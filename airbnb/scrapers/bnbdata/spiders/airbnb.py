@@ -38,7 +38,7 @@ class BnbSpider(scrapy.Spider):
     #results = []
     #adults = 16
 
-    def __init__(self, start_url='', adults=None):
+    def __init__(self, start_url="https://www.airbnb.com/s/Cape-Cod--Barnstable-County--MA--United-States", adults=None):
         self.start_urls = [start_url]
         self.adults = adults
         print("ADULTS", self.adults)
