@@ -6,3 +6,4 @@ dryscrape
 MySQL-python
 sqlalchemy
 pynamodb
+urllib3

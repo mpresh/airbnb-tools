@@ -1,4 +1,4 @@
-def calculate_total_income(calendar):
+def calculate_total_revenue(calendar):
     total = 0
     for day, details in calendar.items():
         if details["available"] is False:

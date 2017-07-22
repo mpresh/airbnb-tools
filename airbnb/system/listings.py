@@ -19,7 +19,8 @@ def get_listings_by_zipcode(zipcode, state="MA", adults=None, retry=0):
     return listings
 
 
-def get_all_listings(zip_codes, adults=None, state="MA"):
+def get_all_listings(zip_codes_func, adults=None, state="MA"):
+    zip_codes = zip_codes_func()
     data = {}
     all_listings = set()
     towns = zip_codes.keys()
@@ -39,6 +40,6 @@ if __name__ == "__main__":
     # all_listings = get_all_listings(zipcodes.get_all_cape_cod_zip_codes(), adults=12)
     # all_listings = get_all_listings(zipcodes.get_all_newport_zip_codes(), adults=10, state="RI")
     # all_listings = get_all_listings(zipcodes.get_all_nantucket_zip_codes(), adults=14, state="MA")
-    all_listings = get_all_listings(zipcodes.get_all_marthas_vinyard_zip_codes(), adults=16, state="MA")
+    all_listings = get_all_listings(zipcodes.get_all_marthas_vinyard_zip_codes, adults=16, state="MA")
     print(len(all_listings))
     #print(get_listings_by_zipcode("02635", adults=10))
