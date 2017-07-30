@@ -7,3 +7,4 @@ MySQL-python
 sqlalchemy
 pynamodb
 urllib3
+geopy
