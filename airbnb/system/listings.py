@@ -1,4 +1,5 @@
 from run_scrapy import run_airbnb_spider
+import os
 import zipcodes 
 import pprint
 import time
@@ -6,21 +7,65 @@ import geopy
 import parser
 from geopy.geocoders import Nominatim
 import re
-    
-def is_listing_in_zipcode(listing_id, zipcode):
+from funcy import memoize
+import json
+
+@memoize
+def is_listing_in_zipcode(listing_id, zipcode, retry=0):
     latitude, longitude = parser.get_listing_lat_and_long(listing_id)
     geolocator = Nominatim()
-    location = geolocator.reverse("{}, {}".format(latitude, longitude))
+    try:
+        location = geolocator.reverse("{}, {}".format(latitude, longitude))
+    except geopy.exc.GeocoderTimedOut:
+        time.sleep(1)
+        if retry < 5:
+            return is_listing_in_zipcode(listing_id, zipcode, retry=retry+1)
+        else:
+            return True
+        
     mo = re.search("(\d\d\d\d\d), United States of America", location.address)
     if mo:
-        zipcode = mo.group(1)
-        return zipcode
+        zipcode_address = mo.group(1)
+        if zipcode == zipcode_address:
+            return True
+        else:
+            return False
     else:
-        print(location.address)
         return False
 
 
-def get_listings_by_zipcode(zipcode, state="MA", adults=None, retry=0, zipcode_filter=True):
+def write_listings_to_file(zipcode, listings):
+    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    listings_dir = os.path.join(root_path, "data/listings")
+    if not os.path.exists(listings_dir):
+        os.makedirs(listings_dir)
+    zip_file = os.path.join(listings_dir, "{}.json".format(zipcode))
+    with open(zip_file, "w") as f:
+        f.write(json.dumps(listings))
+    
+
+def read_listings_from_file(zipcode):
+    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    listings_dir = os.path.join(root_path, "data/listings")
+    zip_file = os.path.join(listings_dir, "{}.json".format(zipcode))
+    if os.path.exists(zip_file):
+        with open(zip_file) as f:
+            text = f.read()
+            listings = json.loads(text)
+            return listings
+    else:
+        return False
+        
+
+        
+
+def get_listings_by_zipcode(zipcode, state="MA", adults=None, retry=0,
+                            zipcode_filter=True, refresh=False):
+    if not refresh:
+        listings = read_listings_from_file(zipcode)
+        if listings is not False:
+            return listings
+    
     start_url = "https://www.airbnb.com/s/{}--{}--United-States".format(zipcode, state)
     try:
         listings = run_airbnb_spider(start_url=start_url, adults=adults)
@@ -36,10 +81,11 @@ def get_listings_by_zipcode(zipcode, state="MA", adults=None, retry=0, zipcode_f
 
     if zipcode_filter:
         listings = [listing for listing in listings if is_listing_in_zipcode(listing, zipcode)]
+    write_listings_to_file(zipcode, listings)
     return listings
 
 
-def get_all_listings(zip_codes_func, adults=None, state="MA"):
+def get_all_listings(zip_codes_func, adults=None, state="MA", refresh=False):
     zip_codes = zip_codes_func()
     data = {}
     all_listings = set()
