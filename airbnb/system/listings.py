@@ -34,10 +34,8 @@ def get_listings_by_zipcode(zipcode, state="MA", adults=None, retry=0, zipcode_f
                                                adults=adults,
                                                retry=retry+1)
 
-    print("Listings found in zipcode {}  #={}".format(zipcode, len(listings)))
     if zipcode_filter:
         listings = [listing for listing in listings if is_listing_in_zipcode(listing, zipcode)]
-    print("Listings found in zipcode filtered {}  #={}".format(zipcode, len(listings)))
     return listings
 
 

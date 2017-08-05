@@ -8,3 +8,4 @@ sqlalchemy
 pynamodb
 urllib3
 geopy
+funcy

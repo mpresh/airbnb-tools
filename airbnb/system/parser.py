@@ -12,6 +12,8 @@ from retrying import retry
 import traceback
 import json
 from lxml import html
+#from funcy import memoize
+
 
 AIRBNB_LISTING_URL = "https://www.airbnb.com/rooms/{}"
 
@@ -32,18 +34,34 @@ def get_json_from_script(soup, attrs):
     return json_data
 
 
-#@retry(wait_fixed=1000)
-def get_listing_lat_and_long(listing_id):
+#@memoize
+@retry(wait_fixed=1000)
+def get_listing_data(listing_id):
     listing_url = AIRBNB_LISTING_URL.format(listing_id)
     text = requests.get(listing_url).text
     
     try:
         data = parse_room_page(text)
+        return data
     except Exception as e:
         print(e)
         return None
 
+
+def get_creation_date(listing_id):
+    """
+    Data not available
+    """
+    data = get_listing_data(listing_id)
+    reviews = data["sorted_reviews"]
+    dates = [review["created_at"] for review in reviews]
+    pprint(dates)
+
+    
+def get_listing_lat_and_long(listing_id):
+    data = get_listing_data(listing_id)
     return (data["lat"], data["lng"])
+
 
 @retry(wait_fixed=1000)
 def get_listing_info(listing_number):
@@ -191,4 +209,5 @@ def parse_room_page(text):
 
     
 if __name__ == "__main__":
+    #pprint(get_creation_date("4914702"))
     print(get_listing_lat_and_long("4914702"))
