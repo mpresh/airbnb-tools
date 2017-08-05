@@ -89,6 +89,7 @@ def get_all_listings(zip_codes_func, adults=None, state="MA", refresh=False):
     zip_codes = zip_codes_func()
     data = {}
     all_listings = set()
+    all_listings_dict = {}
     towns = zip_codes.keys()
     towns.sort()
     for town in towns:
@@ -98,8 +99,9 @@ def get_all_listings(zip_codes_func, adults=None, state="MA", refresh=False):
         #print("Listings ", zip_listings)
         all_listings.update(zip_listings)
         print("Found {}, Total {}".format(len(zip_listings), len(all_listings)))
-
-    return all_listings
+        all_listings_dict["{} - {}".format(zip_code, town)] = zip_listings
+        
+    return all_listings_dict
 
 
 if __name__ == "__main__":

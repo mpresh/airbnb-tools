@@ -5,6 +5,8 @@ from urllib import urlencode
 import requests
 import json
 from pprint import pprint
+import copy
+
 
 def from_datetime_to_string(dt):
     return "{}-{}-{}".format(dt.year, str(dt.month).zfill(2), str(dt.day).zfill(2))
@@ -13,6 +15,33 @@ def from_datetime_to_string(dt):
 def make_start_to_end_date_string(start, end):
     return "{}-{}".format(from_datetime_to_string(start),
                           from_datetime_to_string(end))
+
+
+def remove_blocked_dates(calendar):
+    consecutive_count = 60
+    dates = sorted(calendar.keys())
+
+    if len(dates) < consecutive_count:
+        return calendar
+
+
+    new_calendar = copy.deepcopy(calendar)
+    unavailable = 0
+    for date in dates:
+        if calendar[date]["available"] is False:
+            unavailable += 1
+            new_calendar[date]["available"] = True
+        else:
+            if unavailable > consecutive_count:
+                calendar = new_calendar
+            
+            new_calendar = copy.deepcopy(calendar)    
+            unavailable = 0
+            
+    if unavailable > consecutive_count:
+        calendar = new_calendar
+        
+    return calendar
 
 
 def build_calendar_url(property_id, start, end, adults, key=config.key):
@@ -37,37 +66,6 @@ def build_calendar_url(property_id, start, end, adults, key=config.key):
     url = "https://www.airbnb.com/api/v2/pricing_quotes?{}".format(urlencode(params))
 
     return url
-
-
-def get_calendar_info_old(url):
-    print("URL", url)
-    data = {}
-    session = dryscrape.Session()
-    session.visit(url)
-    text = session.body()
-    
-    if "those dates are not available" in text.lower():
-        return False
-    
-    soup = BeautifulSoup(text, 'html.parser')
-    with open("/tmp/pricing_page.txt", "w+") as f:
-        print(text)
-        f.write(text.encode("utf-8"))
-        
-    price = soup.find(class_="book-it__price")
-    data["price"] = pull_out_first_integer(price.text)    
-
-
-    json_data = get_json_from_script(soup,
-                                     attrs={"data-hypernova-key":
-                                            "p3hero_and_slideshowbundlejs"})
-    pprint(json_data)
-    with open("/tmp/pricing_data.json", "w+") as logfile:
-        pprint(json_data, logfile)
-    sys.exit()
-    
-
-    return data
 
 
 def get_calendar_info(url):
@@ -147,7 +145,7 @@ def get_calendar_dates(property_id, start, end, adults, minimum=1, key="d306zoyj
     else:
         calendar.update(fill_calendar_dates_with_availability_data(start, end, result))
     #print(start, end, calendar)
-    return calendar
+    return remove_blocked_dates(calendar)
 
 
 def get_calendar(property_id="4914702", minimum=2, key="d306zoyjsyarp7ifhu67rjxn52tv0t20"):
