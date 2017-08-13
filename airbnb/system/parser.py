@@ -16,7 +16,7 @@ from funcy import memoize
 
 
 AIRBNB_LISTING_URL = "https://www.airbnb.com/rooms/{}"
-
+WAIT_FIXED=2000
     
 def get_json_from_script(soup, attrs):
     attrs["type"] = "application/json"
@@ -35,32 +35,31 @@ def get_json_from_script(soup, attrs):
 
 
 @memoize
-@retry(wait_fixed=1000)
+@retry(wait_fixed=WAIT_FIXED, stop_max_attempt_number=10)
 def get_listing_data(listing_id):
     listing_url = AIRBNB_LISTING_URL.format(listing_id)
     text = requests.get(listing_url).text
+    if "503 Service Temporarily Unavailable" in text or "temporarily unavailable" in text:
+        print("503 Service Temporarily Unavailable  --  {}".format(listing_url))
+        raise Exception("503 Service Temporarily Unavailable ")
+    data = parse_room_page(text)
+    return data
+
     
-    try:
-        data = parse_room_page(text)
-        return data
-    except Exception as e:
-        print(e)
-        return None
-
-
+@retry(wait_fixed=WAIT_FIXED, stop_max_attempt_number=5)
 def get_listing_lat_and_long(listing_id):
     data = get_listing_data(listing_id)
     return (data["lat"], data["lng"])
 
 
-@retry(wait_fixed=1000)
+@retry(wait_fixed=WAIT_FIXED)
 def get_listing_info(listing_number):
     listing_url = AIRBNB_LISTING_URL.format(listing_number)
     text = requests.get(listing_url).text
     try:
         data = parse_room_page(text)
     except Exception as e:
-        print(e)
+        print("exception info", e)
     print("OOO", data["key"], data["min_nights"])
     data["listing_number"] = listing_number
     calendar = get_calendar(property_id=listing_number,

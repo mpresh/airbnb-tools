@@ -10,7 +10,10 @@ def run_airbnb_spider(**kwargs):
     clean_results = []
     for result in results:
         mo = re.search("rooms[/](.*)[?]", result)
-        clean_results.append(mo.group(1))
+        if mo:
+            clean_results.append(mo.group(1))
+        else:
+            print("result", result)
     return clean_results
 
 
