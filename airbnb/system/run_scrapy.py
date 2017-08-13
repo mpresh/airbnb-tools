@@ -4,8 +4,10 @@ import sys
 import os
 import json
 import re
+import sys
 
 def run_airbnb_spider(**kwargs):
+    print("Starting scraper {}".format(kwargs))
     results = run_spider("scrapers/bnbdata/spiders/airbnb.py", **kwargs)
     clean_results = []
     for result in results:
@@ -14,6 +16,8 @@ def run_airbnb_spider(**kwargs):
             clean_results.append(mo.group(1))
         else:
             print("result", result)
+    print("Done scraper {} {}".format(kwargs, clean_results))
+    sys.stdout.flush()
     return clean_results
 
 
